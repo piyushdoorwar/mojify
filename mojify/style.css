@@ -1,16 +1,17 @@
 /*
- * mojify theme — "Charcoal & Mint".
+ * mojify theme — "Black & Mint".
  *
- * A low-contrast dark theme: near-black charcoal with a soft sage-mint accent
- * used sparingly. Avoids pure black / neon mint on purpose to keep edges easy
- * on the eyes.
+ * Pitch-black background with soft sage-mint accents. Interactive surfaces use
+ * dark-mint tints so they read against the pure black.
  *
  * Palette:
- *   #16191b  charcoal background (near-black, faint green undertone)
- *   #1f2522  raised surface (search field, hover)
- *   #2c3431  borders / active tab fill
+ *   #000000  pitch-black background
+ *   #0c0c0c  search field surface (barely lifted off black)
+ *   #13241d  hover surface (dark mint tint)
+ *   #1d3a2d  active tab fill
+ *   #2c3431  subtle borders
  *   #7fe0b0  soft mint - focus, caret, active-tab underline, scrollbar
- *   #2e6b51  deep muted mint - selection fill
+ *   #2e6b51  deep mint - selection fill
  *   #dfe7e3  soft off-white - primary text
  *   #859089  sage grey - secondary text
  *
@@ -18,7 +19,7 @@
  */
 
 .mojify-root {
-    background-color: #16191b;
+    background-color: #000000;
     border: 1px solid #2c3431;
     border-radius: 14px;
     font-family: "Ubuntu", "Noto Sans", sans-serif;
@@ -37,7 +38,7 @@
     padding: 9px 10px;
     font-size: 15px;
     color: #dfe7e3;
-    background-color: #1f2522;
+    background-color: #0c0c0c;
     border: 1px solid #2c3431;
     border-radius: 10px;
     caret-color: #7fe0b0;
@@ -72,11 +73,11 @@
 }
 .mojify-tab:hover {
     opacity: 0.9;
-    background-color: #1f2522;
+    background-color: #13241d;
 }
 .mojify-tab:checked {
     opacity: 1.0;
-    background-color: #2c3431;
+    background-color: #1d3a2d;
     box-shadow: inset 0 -2px 0 0 #7fe0b0;
 }
 
@@ -94,7 +95,7 @@ flowboxchild {
     transition: background-color 120ms ease;
 }
 flowboxchild:hover {
-    background-color: #1f2522;
+    background-color: #13241d;
 }
 flowboxchild:selected,
 flowboxchild:selected:focus {
