@@ -99,7 +99,9 @@ class PickerWindow(Gtk.Window):
         self.set_decorated(False)
         self.set_resizable(False)
         self.set_keep_above(True)
-        self.set_skip_taskbar_hint(True)
+        # Show in the taskbar/dock (with the app icon) while open. GNOME maps
+        # the window to mojify.desktop via its app id — run --install-desktop.
+        self.set_skip_taskbar_hint(False)
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
         self.set_default_size(600, 480)
         self.set_border_width(0)
