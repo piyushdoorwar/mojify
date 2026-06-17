@@ -1,0 +1,130 @@
+/*
+ * mojify theme — Ubuntu / Yaru inspired.
+ *
+ * Palette:
+ *   #300a24  aubergine background (classic Ubuntu terminal colour)
+ *   #3d1533  raised surface (search field, hover)
+ *   #5e2750  borders / active tab fill
+ *   #e95420  Ubuntu orange — selection & focus accents
+ *   #77216f  aubergine-purple — scrollbar
+ *   #c9a9be  muted mauve — secondary text
+ *
+ * Edit freely; it is loaded at runtime, no rebuild needed for a source run.
+ */
+
+.mojify-root {
+    background-color: #300a24;
+    border: 1px solid #5e2750;
+    border-radius: 14px;
+    font-family: "Ubuntu", "Noto Sans", sans-serif;
+}
+
+/* Make the scroll container blend into the aubergine background. */
+.mojify-root scrolledwindow,
+.mojify-root viewport,
+.mojify-root flowbox {
+    background-color: transparent;
+}
+
+/* Search field */
+.mojify-search {
+    margin: 12px 12px 8px 12px;
+    padding: 9px 10px;
+    font-size: 15px;
+    color: #ffffff;
+    background-color: #3d1533;
+    border: 1px solid #5e2750;
+    border-radius: 10px;
+    caret-color: #e95420;
+}
+.mojify-search:focus {
+    border-color: #e95420;
+    box-shadow: 0 0 0 1px #e95420;
+}
+.mojify-search image {
+    color: #c9a9be;
+}
+.mojify-search selection {
+    background-color: #e95420;
+    color: #ffffff;
+}
+
+/* Category tabs */
+.mojify-tabs {
+    padding: 0 10px 6px 10px;
+}
+.mojify-tab {
+    font-size: 17px;
+    padding: 4px 8px;
+    margin: 0 1px;
+    min-height: 0;
+    min-width: 0;
+    border: none;
+    border-radius: 9px;
+    background-color: transparent;
+    opacity: 0.5;
+    transition: background-color 120ms ease, opacity 120ms ease;
+}
+.mojify-tab:hover {
+    opacity: 0.9;
+    background-color: #3d1533;
+}
+.mojify-tab:checked {
+    opacity: 1.0;
+    background-color: #5e2750;
+    box-shadow: inset 0 -2px 0 0 #e95420;
+}
+
+/* Emoji grid */
+.mojify-grid {
+    padding: 4px 8px 10px 8px;
+}
+.mojify-cell {
+    padding: 7px 4px;
+    border-radius: 10px;
+}
+flowboxchild {
+    padding: 0;
+    margin: 1px;
+    border-radius: 10px;
+    transition: background-color 120ms ease;
+}
+flowboxchild:hover {
+    background-color: #3d1533;
+}
+flowboxchild:selected,
+flowboxchild:selected:focus {
+    background-color: #e95420;
+}
+flowboxchild:selected .mojify-name {
+    color: #ffffff;
+}
+.mojify-emoji {
+    font-size: 28px;
+}
+.mojify-name {
+    font-size: 9px;
+    color: #c9a9be;
+}
+
+/* Scrollbar - Ubuntu aubergine-purple */
+scrollbar {
+    background-color: transparent;
+    border: none;
+    margin: 2px;
+}
+scrollbar slider {
+    min-width: 8px;
+    min-height: 44px;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    background-color: #77216f;
+    transition: background-color 120ms ease;
+}
+scrollbar slider:hover {
+    background-color: #9b4f96;
+}
+scrollbar slider:active {
+    background-color: #e95420;
+}

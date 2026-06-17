@@ -22,6 +22,24 @@ from .emojis import CATEGORIES, search
 MAX_RESULTS = 200
 # Number of emoji buttons per row in the grid.
 COLUMNS = 6
+# Stylesheet bundled alongside this module.
+STYLE_FILE = "style.css"
+
+
+def _load_css():
+    """Return the bundled ``style.css`` as bytes (for ``load_from_data``)."""
+    try:
+        from importlib.resources import files
+
+        return (files(__package__) / STYLE_FILE).read_bytes()
+    except (ImportError, AttributeError, FileNotFoundError):
+        # Python 3.8 (no importlib.resources.files) or a non-standard layout:
+        # fall back to reading next to this module on disk.
+        import os
+
+        path = os.path.join(os.path.dirname(__file__), STYLE_FILE)
+        with open(path, "rb") as handle:
+            return handle.read()
 
 
 def copy_to_clipboard(text):
@@ -57,7 +75,7 @@ class PickerWindow(Gtk.Window):
         self.set_keep_above(True)
         self.set_skip_taskbar_hint(True)
         self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
-        self.set_default_size(560, 440)
+        self.set_default_size(600, 480)
         self.set_border_width(0)
 
         self._apply_styles()
@@ -84,6 +102,8 @@ class PickerWindow(Gtk.Window):
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         scrolled.set_vexpand(True)
+        # Disable overlay (fading) scrollbars so the purple bar stays visible.
+        scrolled.set_overlay_scrolling(False)
         outer.pack_start(scrolled, True, True, 0)
 
         self.flowbox = Gtk.FlowBox()
@@ -146,55 +166,9 @@ class PickerWindow(Gtk.Window):
         self.search_entry.grab_focus()
 
     def _apply_styles(self):
-        css = b"""
-        .mojify-root {
-            background-color: #1e1e2e;
-            border: 1px solid #45475a;
-            border-radius: 12px;
-        }
-        .mojify-search {
-            margin: 10px;
-            padding: 8px;
-            font-size: 16px;
-            border-radius: 8px;
-        }
-        .mojify-tabs {
-            padding: 0 8px 4px 8px;
-        }
-        .mojify-tab {
-            font-size: 18px;
-            padding: 2px 6px;
-            margin: 0;
-            min-height: 0;
-            min-width: 0;
-            border-radius: 8px;
-            opacity: 0.55;
-        }
-        .mojify-tab:checked {
-            background-color: #585b70;
-            opacity: 1.0;
-        }
-        .mojify-grid {
-            padding: 6px;
-        }
-        .mojify-cell {
-            padding: 6px;
-            border-radius: 8px;
-        }
-        .mojify-emoji {
-            font-size: 30px;
-        }
-        .mojify-name {
-            font-size: 10px;
-            color: #a6adc8;
-        }
-        flowboxchild:selected {
-            background-color: #585b70;
-            border-radius: 8px;
-        }
-        """
+        """Load the bundled ``style.css`` and apply it to the whole screen."""
         provider = Gtk.CssProvider()
-        provider.load_from_data(css)
+        provider.load_from_data(_load_css())
         Gtk.StyleContext.add_provider_for_screen(
             Gdk.Screen.get_default(),
             provider,
