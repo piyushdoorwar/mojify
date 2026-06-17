@@ -78,6 +78,7 @@ class PickerWindow(Gtk.Window):
         self.set_default_size(600, 480)
         self.set_border_width(0)
 
+        self._set_window_icon()
         self._apply_styles()
 
         outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
@@ -164,6 +165,20 @@ class PickerWindow(Gtk.Window):
             self._sync_tab_buttons(name)
             self._populate("")
         self.search_entry.grab_focus()
+
+    def _set_window_icon(self):
+        """Use the bundled logo as the window/taskbar icon.
+
+        Purely cosmetic — if the SVG loader (librsvg) is unavailable, silently
+        carry on rather than blocking the picker.
+        """
+        import os
+
+        path = os.path.join(os.path.dirname(__file__), "logo.svg")
+        try:
+            self.set_icon_from_file(path)
+        except Exception:
+            pass
 
     def _apply_styles(self):
         """Load the bundled ``style.css`` and apply it to the whole screen."""

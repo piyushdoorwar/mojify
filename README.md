@@ -1,4 +1,8 @@
-# mojify 🔥
+<p align="center">
+  <img src="mojify/logo.svg" alt="mojify logo" width="128" height="128">
+</p>
+
+<h1 align="center">mojify</h1>
 
 **A Wayland-native emoji picker for Ubuntu/GNOME.**
 
