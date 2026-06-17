@@ -21,8 +21,9 @@ from .emojis import BY_CHAR, CATEGORIES, search
 # How many search results to show at once. Keeps the grid responsive on broad
 # queries. Browsing a category always shows the whole category.
 MAX_RESULTS = 200
-# Number of emoji buttons per row in the grid.
-COLUMNS = 6
+# Number of emoji buttons per row in the grid. Glyph-only cells are compact,
+# so we fit more per row than the old name-labelled cells did.
+COLUMNS = 8
 # Fixed pixel size of the scrollable emoji grid. Pinning it keeps the window a
 # constant size no matter how many emojis a tab/search shows.
 GRID_WIDTH = 560
@@ -117,13 +118,8 @@ class PickerWindow(Gtk.Window):
         outer.get_style_context().add_class("mojify-root")
         self.add(outer)
 
-        # Search entry at the top.
-        self.search_entry = Gtk.SearchEntry()
-        self.search_entry.set_placeholder_text("Search emoji — e.g. fire, smile, heart")
-        self.search_entry.get_style_context().add_class("mojify-search")
-        self.search_entry.connect("search-changed", self._on_search_changed)
-        self.search_entry.connect("activate", self._on_search_activate)
-        outer.pack_start(self.search_entry, False, False, 0)
+        # Layout (top → bottom): category tabs, search box, emoji grid, and a
+        # footer that names whatever emoji is hovered or focused.
 
         # Category tab bar. Browsing a tab shows that whole category; typing
         # in the search box temporarily overrides the tabs and searches all.
@@ -131,6 +127,14 @@ class PickerWindow(Gtk.Window):
         self.current_category = RECENT_KEY if recents.top(1) else next(iter(CATEGORIES))
         self._tab_buttons = {}
         outer.pack_start(self._build_tabs(), False, False, 0)
+
+        # Search entry below the tabs.
+        self.search_entry = Gtk.SearchEntry()
+        self.search_entry.set_placeholder_text("Search emoji — e.g. fire, smile, heart")
+        self.search_entry.get_style_context().add_class("mojify-search")
+        self.search_entry.connect("search-changed", self._on_search_changed)
+        self.search_entry.connect("activate", self._on_search_activate)
+        outer.pack_start(self.search_entry, False, False, 0)
 
         # Scrollable area holding the results grid. Pin its size so the window
         # dimensions never depend on how many emojis are shown — otherwise a
@@ -157,7 +161,16 @@ class PickerWindow(Gtk.Window):
         self.flowbox.set_homogeneous(True)
         self.flowbox.get_style_context().add_class("mojify-grid")
         self.flowbox.connect("child-activated", self._on_child_activated)
+        self.flowbox.connect("selected-children-changed", self._on_selection_changed)
         scrolled.add(self.flowbox)
+
+        # Footer: names the hovered / focused emoji (so the grid itself can show
+        # just the large glyphs, no per-cell label).
+        self.footer = Gtk.Label(label="")
+        self.footer.set_halign(Gtk.Align.START)
+        self.footer.set_ellipsize(3)  # PANGO_ELLIPSIZE_END
+        self.footer.get_style_context().add_class("mojify-footer")
+        outer.pack_start(self.footer, False, False, 0)
 
         # Global key handling (Escape to close, arrows to navigate).
         self.connect("key-press-event", self._on_key_press)
@@ -236,21 +249,37 @@ class PickerWindow(Gtk.Window):
         )
 
     def _make_cell(self, char, name):
-        """Build a single emoji cell (large glyph above its name)."""
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
-        box.get_style_context().add_class("mojify-cell")
+        """Build a single emoji cell: just the large glyph.
+
+        The name isn't shown per-cell; hovering updates the footer instead.
+        An EventBox wraps the label so we can catch hover (enter) events.
+        """
+        ebox = Gtk.EventBox()
+        ebox.get_style_context().add_class("mojify-cell")
+        # Input-only: receive hover events without painting over the cell's
+        # selection/hover highlight (which lives on the flowboxchild).
+        ebox.set_visible_window(False)
+        ebox.add_events(Gdk.EventMask.ENTER_NOTIFY_MASK)
+        ebox.connect("enter-notify-event", self._on_cell_hover, char, name)
 
         emoji_label = Gtk.Label(label=char)
         emoji_label.get_style_context().add_class("mojify-emoji")
-        box.pack_start(emoji_label, False, False, 0)
+        ebox.add(emoji_label)
+        return ebox
 
-        name_label = Gtk.Label(label=name)
-        name_label.get_style_context().add_class("mojify-name")
-        name_label.set_ellipsize(3)  # PANGO_ELLIPSIZE_END
-        name_label.set_max_width_chars(12)
-        box.pack_start(name_label, False, False, 0)
+    def _set_footer(self, char, name):
+        self.footer.set_text(f"{char}   {name}" if char else "")
 
-        return box
+    def _on_cell_hover(self, _widget, _event, char, name):
+        self._set_footer(char, name)
+        return False
+
+    def _on_selection_changed(self, flowbox):
+        """Keyboard navigation moves the selection; mirror it in the footer."""
+        selected = flowbox.get_selected_children()
+        if selected:
+            child = selected[0]
+            self._set_footer(getattr(child, "emoji_char", ""), getattr(child, "emoji_name", ""))
 
     def _populate(self, query):
         """Refresh the grid.
@@ -271,16 +300,19 @@ class PickerWindow(Gtk.Window):
         for char, name, _keywords in results:
             child = Gtk.FlowBoxChild()
             child.emoji_char = char  # stash for later retrieval
+            child.emoji_name = name
             child.add(self._make_cell(char, name))
             self.flowbox.add(child)
 
         self.flowbox.show_all()
 
         if not results and self.current_category == RECENT_KEY and not query.strip():
+            self._set_footer("", "")
             self._show_placeholder("No recents yet — pick an emoji and it lands here.")
             return
 
-        # Pre-select the first result so Enter works immediately.
+        # Pre-select the first result so Enter works immediately (also updates
+        # the footer via the selection-changed handler).
         first = self.flowbox.get_child_at_index(0)
         if first is not None:
             self.flowbox.select_child(first)
