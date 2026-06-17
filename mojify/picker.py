@@ -174,6 +174,9 @@ class PickerWindow(Gtk.Window):
         """
         import os
 
+        # Themed name (resolves once --install-desktop has placed the icon in
+        # the hicolor theme) plus a direct file fallback from the package.
+        self.set_icon_name("mojify")
         path = os.path.join(os.path.dirname(__file__), "logo.svg")
         try:
             self.set_icon_from_file(path)
@@ -290,6 +293,12 @@ class PickerWindow(Gtk.Window):
 
 def run_picker():
     """Launch the picker window and run the GTK main loop."""
+    # Advertise a stable app id. On Wayland this becomes the window's app_id /
+    # WM_CLASS, which GNOME matches against `mojify.desktop` (StartupWMClass)
+    # to show the logo in the dock/overview. See `mojify --install-desktop`.
+    GLib.set_prgname("mojify")
+    GLib.set_application_name("mojify")
+
     win = PickerWindow()
     win.connect("focus-out-event", lambda *_: win.close())
     win.show_all()

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="mojify/logo.svg" alt="mojify logo" width="128" height="128">
+  <img src="https://raw.githubusercontent.com/piyushdoorwar/mojify/main/assets/logo.png" alt="mojify logo" width="128" height="128">
 </p>
 
 <h1 align="center">mojify</h1>
@@ -100,6 +100,19 @@ Now press `Super + .` anywhere and the picker pops up.
 > command field.
 
 ---
+
+## Show mojify in the app grid / dock (optional)
+
+To register mojify as a desktop app (with its icon) so it appears in the GNOME
+app grid, search, and dock — and can be pinned:
+
+```bash
+mojify --install-desktop      # installs a .desktop file + icon
+mojify --uninstall-desktop    # removes them
+```
+
+You may need to log out/in for the icon to refresh. Note the picker itself is a
+borderless pop-up, so it intentionally has no titlebar icon.
 
 ## How it works
 
