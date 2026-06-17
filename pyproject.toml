@@ -1,10 +1,11 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=64", "setuptools-scm>=8", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "mojify"
-version = "0.1.0"
+# Version is derived from git tags by setuptools-scm (see [tool.setuptools_scm]).
+dynamic = ["version"]
 description = "A Wayland-native emoji picker for Ubuntu/GNOME — search, select, paste."
 readme = "README.md"
 requires-python = ">=3.8"
@@ -44,3 +45,10 @@ mojify = "mojify.__main__:main"
 
 [tool.setuptools]
 packages = ["mojify"]
+
+[tool.setuptools_scm]
+# Derive the version from the latest `vX.Y.Z` git tag. Also writes the
+# resolved version to a generated file so `mojify --version` works when the
+# package is run straight from a source checkout (not just an installed wheel).
+version_file = "mojify/_version.py"
+

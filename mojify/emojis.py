@@ -9,8 +9,8 @@ offline with no external API or data file.
 """
 
 # (character, name, keywords)
-EMOJIS = [
-    # ── Smileys & emotion ──────────────────────────────────────────────
+CATEGORIES = {
+    "😀  Smileys": [
     ("😀", "grinning face", "smile happy joy grin"),
     ("😃", "grinning face with big eyes", "smile happy joy"),
     ("😄", "grinning face with smiling eyes", "smile happy laugh"),
@@ -120,7 +120,8 @@ EMOJIS = [
     ("😿", "crying cat", "cat sad tear"),
     ("😾", "pouting cat", "cat angry"),
 
-    # ── Gestures & body ────────────────────────────────────────────────
+    ],
+    "✌️  Gestures": [
     ("👋", "waving hand", "hello hi bye wave goodbye"),
     ("🤚", "raised back of hand", "stop hand"),
     ("🖐️", "hand with fingers splayed", "stop five hand"),
@@ -163,7 +164,8 @@ EMOJIS = [
     ("👄", "mouth", "lips kiss"),
     ("🦷", "tooth", "dentist teeth"),
 
-    # ── People & roles ─────────────────────────────────────────────────
+    ],
+    "🧑  People": [
     ("👶", "baby", "infant child newborn"),
     ("🧒", "child", "kid young"),
     ("👦", "boy", "child kid male"),
@@ -213,7 +215,8 @@ EMOJIS = [
     ("🛀", "person taking bath", "bath relax tub"),
     ("👪", "family", "parents kids household"),
 
-    # ── Animals & nature ───────────────────────────────────────────────
+    ],
+    "🐶  Animals": [
     ("🐶", "dog face", "puppy pet animal"),
     ("🐱", "cat face", "kitten pet animal meow"),
     ("🐭", "mouse face", "rodent animal"),
@@ -314,7 +317,8 @@ EMOJIS = [
     ("💐", "bouquet", "flowers gift romance"),
     ("🍄", "mushroom", "fungus toadstool"),
 
-    # ── Food & drink ───────────────────────────────────────────────────
+    ],
+    "🍔  Food": [
     ("🍏", "green apple", "fruit food healthy"),
     ("🍎", "red apple", "fruit food healthy"),
     ("🍐", "pear", "fruit food"),
@@ -417,7 +421,8 @@ EMOJIS = [
     ("🍴", "fork and knife", "eat cutlery food"),
     ("🥄", "spoon", "eat cutlery"),
 
-    # ── Travel & places ────────────────────────────────────────────────
+    ],
+    "✈️  Travel": [
     ("🚗", "automobile", "car vehicle drive"),
     ("🚕", "taxi", "cab car vehicle"),
     ("🚙", "sport utility vehicle", "suv car vehicle"),
@@ -493,7 +498,8 @@ EMOJIS = [
     ("🌅", "sunrise", "morning dawn sun"),
     ("🏙️", "cityscape", "city skyline buildings"),
 
-    # ── Activities, sports & objects ──────────────────────────────────
+    ],
+    "⚽  Activities": [
     ("⚽", "soccer ball", "football sport"),
     ("🏀", "basketball", "sport hoop"),
     ("🏈", "american football", "sport nfl"),
@@ -550,6 +556,8 @@ EMOJIS = [
     ("🎻", "violin", "music classical instrument"),
     ("🪕", "banjo", "music instrument"),
     ("🎳", "bowling", "sport strike pins"),
+    ],
+    "💡  Objects": [
     ("📱", "mobile phone", "smartphone cell call"),
     ("📲", "mobile phone with arrow", "call phone"),
     ("💻", "laptop", "computer pc work code"),
@@ -682,7 +690,8 @@ EMOJIS = [
     ("🔍", "magnifying glass tilted left", "search find zoom look"),
     ("🔎", "magnifying glass tilted right", "search find zoom"),
 
-    # ── Symbols & hearts ───────────────────────────────────────────────
+    ],
+    "❤️  Symbols": [
     ("❤️", "red heart", "love like romance"),
     ("🧡", "orange heart", "love like"),
     ("💛", "yellow heart", "love like friendship"),
@@ -826,7 +835,8 @@ EMOJIS = [
     ("⌛", "hourglass done", "time wait sand"),
     ("⏳", "hourglass not done", "time wait sand loading"),
 
-    # ── Arrows ─────────────────────────────────────────────────────────
+    ],
+    "➡️  Arrows": [
     ("⬆️", "up arrow", "north direction"),
     ("⬇️", "down arrow", "south direction"),
     ("⬅️", "left arrow", "west direction back"),
@@ -856,7 +866,8 @@ EMOJIS = [
     ("🔁", "repeat button", "loop music"),
     ("🔂", "repeat single button", "loop music"),
 
-    # ── Flags ──────────────────────────────────────────────────────────
+    ],
+    "🚩  Flags": [
     ("🏁", "chequered flag", "race finish start"),
     ("🚩", "triangular flag", "marker location warning"),
     ("🎌", "crossed flags", "japan celebrate"),
@@ -886,7 +897,12 @@ EMOJIS = [
     ("🇮🇪", "flag ireland", "irish"),
     ("🇳🇿", "flag new zealand", "kiwi"),
     ("🇸🇬", "flag singapore", "singaporean"),
-]
+    ],
+}
+
+# Flat list of every emoji, preserving category order. The picker uses
+# CATEGORIES for its tabs; search() and --list operate on this flat view.
+EMOJIS = [entry for _items in CATEGORIES.values() for entry in _items]
 
 
 def search(query, limit=None):

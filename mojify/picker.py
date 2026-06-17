@@ -15,11 +15,11 @@ gi.require_version("Gtk", "3.0")
 gi.require_version("Gdk", "3.0")
 from gi.repository import Gdk, GLib, Gtk  # noqa: E402
 
-from .emojis import search
+from .emojis import CATEGORIES, search
 
-# How many results to show at once. Keeps the grid responsive even on an
-# empty query (which returns the full list).
-MAX_RESULTS = 80
+# How many search results to show at once. Keeps the grid responsive on broad
+# queries. Browsing a category always shows the whole category.
+MAX_RESULTS = 200
 # Number of emoji buttons per row in the grid.
 COLUMNS = 6
 
@@ -74,6 +74,12 @@ class PickerWindow(Gtk.Window):
         self.search_entry.connect("activate", self._on_search_activate)
         outer.pack_start(self.search_entry, False, False, 0)
 
+        # Category tab bar. Browsing a tab shows that whole category; typing
+        # in the search box temporarily overrides the tabs and searches all.
+        self.current_category = next(iter(CATEGORIES))
+        self._tab_buttons = {}
+        outer.pack_start(self._build_tabs(), False, False, 0)
+
         # Scrollable area holding the results grid.
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
@@ -96,6 +102,49 @@ class PickerWindow(Gtk.Window):
 
         self._populate("")
 
+    def _build_tabs(self):
+        """A horizontally-scrolling row of one toggle button per category.
+
+        The button label is just the category's leading emoji (the dict keys
+        are like ``"😀  Smileys"``), with the full name shown as a tooltip.
+        """
+        scroller = Gtk.ScrolledWindow()
+        scroller.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.NEVER)
+        scroller.get_style_context().add_class("mojify-tabs")
+
+        row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2)
+        scroller.add(row)
+
+        for name in CATEGORIES:
+            icon, _, label = name.partition("  ")
+            btn = Gtk.ToggleButton(label=icon)
+            btn.set_tooltip_text(label or icon)
+            btn.set_relief(Gtk.ReliefStyle.NONE)
+            btn.get_style_context().add_class("mojify-tab")
+            btn.set_active(name == self.current_category)
+            btn.connect("clicked", self._on_tab_clicked, name)
+            self._tab_buttons[name] = btn
+            row.pack_start(btn, False, False, 0)
+
+        return scroller
+
+    def _sync_tab_buttons(self, active_name):
+        """Visually mark ``active_name`` as the selected tab (or none if None)."""
+        for name, btn in self._tab_buttons.items():
+            btn.handler_block_by_func(self._on_tab_clicked)
+            btn.set_active(name == active_name)
+            btn.handler_unblock_by_func(self._on_tab_clicked)
+
+    def _on_tab_clicked(self, _button, name):
+        self.current_category = name
+        # Switching tabs clears any active search so the category is visible.
+        if self.search_entry.get_text():
+            self.search_entry.set_text("")  # triggers _populate via search-changed
+        else:
+            self._sync_tab_buttons(name)
+            self._populate("")
+        self.search_entry.grab_focus()
+
     def _apply_styles(self):
         css = b"""
         .mojify-root {
@@ -108,6 +157,22 @@ class PickerWindow(Gtk.Window):
             padding: 8px;
             font-size: 16px;
             border-radius: 8px;
+        }
+        .mojify-tabs {
+            padding: 0 8px 4px 8px;
+        }
+        .mojify-tab {
+            font-size: 18px;
+            padding: 2px 6px;
+            margin: 0;
+            min-height: 0;
+            min-width: 0;
+            border-radius: 8px;
+            opacity: 0.55;
+        }
+        .mojify-tab:checked {
+            background-color: #585b70;
+            opacity: 1.0;
         }
         .mojify-grid {
             padding: 6px;
@@ -154,11 +219,19 @@ class PickerWindow(Gtk.Window):
         return box
 
     def _populate(self, query):
-        """Refresh the grid with results for ``query``."""
+        """Refresh the grid.
+
+        With a query, show search results across all categories. With an empty
+        query, browse the currently-selected category tab.
+        """
         for child in self.flowbox.get_children():
             self.flowbox.remove(child)
 
-        results = search(query, limit=MAX_RESULTS)
+        if query.strip():
+            results = search(query, limit=MAX_RESULTS)
+        else:
+            results = CATEGORIES[self.current_category]
+
         for char, name, _keywords in results:
             child = Gtk.FlowBoxChild()
             child.emoji_char = char  # stash for later retrieval
@@ -173,6 +246,9 @@ class PickerWindow(Gtk.Window):
             self.flowbox.select_child(first)
 
     def _on_search_changed(self, entry):
+        # While a search is active no tab is "current"; clear the highlight so
+        # it's obvious results span all categories. Restore it when cleared.
+        self._sync_tab_buttons(None if entry.get_text().strip() else self.current_category)
         self._populate(entry.get_text())
 
     def _on_search_activate(self, _entry):
