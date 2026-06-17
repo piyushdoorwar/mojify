@@ -15,7 +15,8 @@ gi.require_version("Gtk", "3.0")
 gi.require_version("Gdk", "3.0")
 from gi.repository import Gdk, GLib, Gtk  # noqa: E402
 
-from .emojis import CATEGORIES, search
+from . import recents
+from .emojis import BY_CHAR, CATEGORIES, search
 
 # How many search results to show at once. Keeps the grid responsive on broad
 # queries. Browsing a category always shows the whole category.
@@ -24,6 +25,8 @@ MAX_RESULTS = 200
 COLUMNS = 6
 # Stylesheet bundled alongside this module.
 STYLE_FILE = "style.css"
+# Label of the synthetic, always-first "recently used" tab.
+RECENT_KEY = "🕒  Recent"
 
 
 def _load_css():
@@ -63,11 +66,34 @@ def copy_to_clipboard(text):
         return False
 
 
+def notify_copied(char, name):
+    """Show a brief desktop notification confirming the copy (best-effort)."""
+    notify_send = shutil.which("notify-send")
+    if notify_send is None:
+        return
+    try:
+        subprocess.run(
+            [notify_send, "--app-name=mojify", "--icon=mojify",
+             "--expire-time=1500", f"Copied {char}", name],
+            check=False,
+        )
+    except OSError:
+        pass
+
+
 class PickerWindow(Gtk.Window):
     """The floating emoji picker window."""
 
-    def __init__(self):
+    def __init__(self, to_stdout=False, notify=True):
         super().__init__(title="mojify")
+
+        # Behaviour: copy to clipboard (default) or print to stdout; whether to
+        # show a desktop notification after a copy.
+        self.to_stdout = to_stdout
+        self.notify = notify
+
+        # Ordered tab labels: a synthetic "Recent" tab first, then categories.
+        self._tab_keys = [RECENT_KEY] + list(CATEGORIES)
 
         # Borderless, centered, always-on-top floating window.
         self.set_decorated(False)
@@ -95,7 +121,8 @@ class PickerWindow(Gtk.Window):
 
         # Category tab bar. Browsing a tab shows that whole category; typing
         # in the search box temporarily overrides the tabs and searches all.
-        self.current_category = next(iter(CATEGORIES))
+        # Start on Recent if there's any history, otherwise the first category.
+        self.current_category = RECENT_KEY if recents.top(1) else next(iter(CATEGORIES))
         self._tab_buttons = {}
         outer.pack_start(self._build_tabs(), False, False, 0)
 
@@ -136,7 +163,7 @@ class PickerWindow(Gtk.Window):
         row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2)
         scroller.add(row)
 
-        for name in CATEGORIES:
+        for name in self._tab_keys:
             icon, _, label = name.partition("  ")
             btn = Gtk.ToggleButton(label=icon)
             btn.set_tooltip_text(label or icon)
@@ -221,6 +248,8 @@ class PickerWindow(Gtk.Window):
 
         if query.strip():
             results = search(query, limit=MAX_RESULTS)
+        elif self.current_category == RECENT_KEY:
+            results = recents.top()
         else:
             results = CATEGORIES[self.current_category]
 
@@ -232,10 +261,24 @@ class PickerWindow(Gtk.Window):
 
         self.flowbox.show_all()
 
+        if not results and self.current_category == RECENT_KEY and not query.strip():
+            self._show_placeholder("No recents yet — pick an emoji and it lands here.")
+            return
+
         # Pre-select the first result so Enter works immediately.
         first = self.flowbox.get_child_at_index(0)
         if first is not None:
             self.flowbox.select_child(first)
+
+    def _show_placeholder(self, text):
+        """Drop a single, non-selectable hint row into the empty grid."""
+        child = Gtk.FlowBoxChild()
+        child.set_can_focus(False)
+        label = Gtk.Label(label=text)
+        label.get_style_context().add_class("mojify-name")
+        child.add(label)
+        self.flowbox.add(child)
+        self.flowbox.show_all()
 
     def _on_search_changed(self, entry):
         # While a search is active no tab is "current"; clear the highlight so
@@ -259,7 +302,14 @@ class PickerWindow(Gtk.Window):
     def _select_and_close(self, child):
         char = getattr(child, "emoji_char", None)
         if char:
-            copy_to_clipboard(char)
+            recents.record(char)
+            if self.to_stdout:
+                # Print the bare emoji so it composes in shell pipelines.
+                sys.stdout.write(char)
+                sys.stdout.flush()
+            elif copy_to_clipboard(char) and self.notify:
+                entry = BY_CHAR.get(char)
+                notify_copied(char, entry[1] if entry else "")
         self.close()
 
     def _on_key_press(self, _widget, event):
@@ -291,7 +341,7 @@ class PickerWindow(Gtk.Window):
         return Gtk.DirectionType.RIGHT
 
 
-def run_picker():
+def run_picker(to_stdout=False, notify=True):
     """Launch the picker window and run the GTK main loop."""
     # Advertise a stable app id. On Wayland this becomes the window's app_id /
     # WM_CLASS, which GNOME matches against `mojify.desktop` (StartupWMClass)
@@ -299,7 +349,7 @@ def run_picker():
     GLib.set_prgname("mojify")
     GLib.set_application_name("mojify")
 
-    win = PickerWindow()
+    win = PickerWindow(to_stdout=to_stdout, notify=notify)
     win.connect("focus-out-event", lambda *_: win.close())
     win.show_all()
     win.search_entry.grab_focus()

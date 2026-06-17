@@ -65,6 +65,8 @@ Other commands:
 ```bash
 mojify --version    # print the version
 mojify --list       # print every bundled emoji (char<TAB>name<TAB>keywords)
+mojify --stdout     # print the chosen emoji to stdout instead of copying
+mojify --no-notify  # skip the "Copied" desktop notification
 ```
 
 `--list` is handy for scripting, e.g. piping into your own fuzzy finder:
@@ -119,10 +121,10 @@ borderless pop-up, so it intentionally has no titlebar icon.
 1. Press your shortcut (e.g. `Super + .`).
 2. A small floating search window appears in the center of the screen,
    always on top, with no titlebar.
-3. Browse by **category tab** (smileys, people, animals, food, travel,
-   activities, objects, symbols, arrows, flags) — or just start typing to
-   **search by name or keyword** (`fire`, `smile`, `heart`, `rocket`, …).
-   Search spans every category; results update in real time.
+3. Browse by **category tab** — starting with a **🕒 Recent** tab of your
+   most-used emojis — or just start typing to **search by name or keyword**
+   (`fire`, `smile`, `heart`, `rocket`, …). Search spans every category and
+   updates in real time.
 4. Use **arrow keys** to move through the grid, or click with the mouse.
 5. Press **Enter** (or click) to select. The emoji is copied to your
    clipboard and the window closes instantly.

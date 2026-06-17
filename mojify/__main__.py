@@ -63,6 +63,16 @@ def build_parser():
         action="store_true",
         help="remove the desktop entry and icon installed by --install-desktop",
     )
+    parser.add_argument(
+        "--stdout",
+        action="store_true",
+        help="print the chosen emoji to stdout instead of copying to the clipboard",
+    )
+    parser.add_argument(
+        "--no-notify",
+        action="store_true",
+        help="do not show a desktop notification after copying",
+    )
     return parser
 
 
@@ -163,7 +173,7 @@ def main(argv=None):
         )
         return 1
 
-    run_picker()
+    run_picker(to_stdout=args.stdout, notify=not args.no_notify)
     return 0
 
 

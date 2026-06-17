@@ -27,12 +27,18 @@ The launch shortcut documented in the README is `Super + .`.
 ```
 mojify/
 ├── mojify/
-│   ├── __init__.py     # __version__ lives here
-│   ├── __main__.py     # CLI: launch / --version / --list
-│   ├── picker.py       # GTK3 floating picker window + clipboard
-│   └── emojis.py       # CATEGORIES dict + flat EMOJIS + search()
+│   ├── __init__.py     # __version__ (from git tags via setuptools-scm)
+│   ├── __main__.py     # CLI: launch / --version / --list / --stdout /
+│   │                   #      --install-desktop / --uninstall-desktop
+│   ├── picker.py       # GTK3 floating picker window + clipboard + notify
+│   ├── emojis.py       # CATEGORIES dict + flat EMOJIS + BY_CHAR + search()
+│   ├── recents.py      # persistent "recently used" store (XDG state dir)
+│   ├── style.css       # GTK stylesheet (Charcoal & Mint theme)
+│   └── logo.svg        # app icon / logo
+├── tests/              # pytest suite (no GTK needed)
+├── assets/logo.png     # raster logo for README/PyPI (absolute raw URL)
 ├── .github/
-│   ├── workflows/publish.yml   # PyPI publish on GitHub Release
+│   ├── workflows/publish.yml   # test → build → publish (tags only)
 │   └── claude.md               # this file
 ├── pyproject.toml      # all packaging metadata
 ├── setup.py            # thin shim → setuptools
@@ -58,23 +64,39 @@ mojify/
 
 - Borderless, centered, always-on-top, closes on Escape / focus-loss /
   selection. Search box on top, a row of category tabs, then the emoji grid.
+- First tab is a synthetic **`RECENT_KEY` ("🕒  Recent")** backed by
+  `recents.top()`; it is not a real category. Launch defaults to Recent when
+  history exists, else the first category.
 - Typing searches across **all** categories and clears the tab highlight;
   clearing the search restores the current category view.
-- Clipboard goes through `wl-copy` in `copy_to_clipboard()`.
+- On selection: `recents.record(char)`, then either print to stdout
+  (`to_stdout`) or `copy_to_clipboard()` + optional `notify_copied()` toast.
+- Theme is loaded from `style.css` via `_load_css()`. The window sets app id
+  `mojify` (`GLib.set_prgname`) so GNOME maps it to `mojify.desktop`.
 
 ## CLI (`__main__.py`)
 
-- `mojify` launches the picker; `--version` and `--list` work **without** GTK
-  (the picker is imported lazily) so scripting works on headless machines.
+- `mojify` launches the picker. `--version`, `--list`, `--stdout` plumbing,
+  and `--install-desktop` / `--uninstall-desktop` all work **without** GTK
+  (the picker is imported lazily) so scripting/headless use works.
+- `--install-desktop` writes `mojify.desktop` + the icon under the XDG data
+  dir; `StartupWMClass=mojify` must match the window app id.
+
+## Testing
+
+- `tests/` is a pytest suite that avoids GTK entirely (covers `search()`,
+  `recents`, `--list`, and the desktop installer). Run: `pip install -e
+  ".[test]" && pytest`.
+- CI runs it on 3.8 + 3.12 as the `test` job; `build` needs `test`, so a
+  failing test blocks publish.
 
 ## Conventions
 
 - Python **3.8+** compatible.
-- The GUI can't be exercised in a headless CI/sandbox (needs a Wayland/X
-  display). Validate logic via imports, `--list`, and `search()`; note when a
-  change is UI-only and unverified live.
-- Bump `__version__` in `mojify/__init__.py` **and** `version` in
-  `pyproject.toml` together before cutting a release.
+- The GUI itself can't be exercised in a headless CI/sandbox (needs a
+  Wayland/X display). Validate logic via tests, `--list`, and `search()`; note
+  when a change is UI-only and unverified live.
+- Never hardcode the version — it comes from git tags via setuptools-scm.
 
 ## Releasing
 

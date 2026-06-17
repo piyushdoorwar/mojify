@@ -35,6 +35,9 @@ classifiers = [
 # (the `wl-copy` binary), installed via apt — see the README.
 dependencies = []
 
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
 [project.urls]
 Homepage = "https://github.com/piyushdoorwar/mojify"
 Repository = "https://github.com/piyushdoorwar/mojify"

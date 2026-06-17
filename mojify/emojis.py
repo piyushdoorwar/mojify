@@ -904,6 +904,10 @@ CATEGORIES = {
 # CATEGORIES for its tabs; search() and --list operate on this flat view.
 EMOJIS = [entry for _items in CATEGORIES.values() for entry in _items]
 
+# Fast lookup from emoji character to its (char, name, keywords) entry — used
+# to render the "Recent" tab from stored characters.
+BY_CHAR = {entry[0]: entry for entry in EMOJIS}
+
 
 def search(query, limit=None):
     """Return emoji entries matching ``query``.
