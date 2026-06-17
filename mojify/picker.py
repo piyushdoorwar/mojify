@@ -23,6 +23,10 @@ from .emojis import BY_CHAR, CATEGORIES, search
 MAX_RESULTS = 200
 # Number of emoji buttons per row in the grid.
 COLUMNS = 6
+# Fixed pixel size of the scrollable emoji grid. Pinning it keeps the window a
+# constant size no matter how many emojis a tab/search shows.
+GRID_WIDTH = 560
+GRID_HEIGHT = 360
 # Stylesheet bundled alongside this module.
 STYLE_FILE = "style.css"
 # Label of the synthetic, always-first "recently used" tab.
@@ -128,12 +132,21 @@ class PickerWindow(Gtk.Window):
         self._tab_buttons = {}
         outer.pack_start(self._build_tabs(), False, False, 0)
 
-        # Scrollable area holding the results grid.
+        # Scrollable area holding the results grid. Pin its size so the window
+        # dimensions never depend on how many emojis are shown — otherwise a
+        # sparse tab (e.g. an empty Recent) would shrink the whole window.
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         scrolled.set_vexpand(True)
         # Disable overlay (fading) scrollbars so the purple bar stays visible.
         scrolled.set_overlay_scrolling(False)
+        # Fixed viewport: never grow/shrink to fit content.
+        scrolled.set_propagate_natural_width(False)
+        scrolled.set_propagate_natural_height(False)
+        scrolled.set_min_content_width(GRID_WIDTH)
+        scrolled.set_max_content_width(GRID_WIDTH)
+        scrolled.set_min_content_height(GRID_HEIGHT)
+        scrolled.set_max_content_height(GRID_HEIGHT)
         outer.pack_start(scrolled, True, True, 0)
 
         self.flowbox = Gtk.FlowBox()
