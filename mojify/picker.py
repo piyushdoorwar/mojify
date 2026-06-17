@@ -13,17 +13,17 @@ import gi
 
 gi.require_version("Gtk", "3.0")
 gi.require_version("Gdk", "3.0")
-from gi.repository import Gdk, GLib, Gtk  # noqa: E402
+from gi.repository import Gdk, GdkPixbuf, GLib, Gtk  # noqa: E402
 
 from . import recents
-from .emojis import BY_CHAR, CATEGORIES, search
+from .emojis import BY_CHAR, CATEGORIES, display_name, search
 
 # How many search results to show at once. Keeps the grid responsive on broad
 # queries. Browsing a category always shows the whole category.
 MAX_RESULTS = 200
-# Number of emoji buttons per row in the grid. Glyph-only cells are compact,
-# so we fit more per row than the old name-labelled cells did.
-COLUMNS = 8
+# Number of emoji buttons per row in the grid. Fewer columns => larger cells
+# and bigger glyphs.
+COLUMNS = 7
 # Fixed pixel size of the scrollable emoji grid. Pinning it keeps the window a
 # constant size no matter how many emojis a tab/search shows.
 GRID_WIDTH = 560
@@ -32,6 +32,26 @@ GRID_HEIGHT = 360
 STYLE_FILE = "style.css"
 # Label of the synthetic, always-first "recently used" tab.
 RECENT_KEY = "🕒  Recent"
+# Maps a category's display name to its outline tab icon (mojify/icons/<x>.svg).
+TAB_ICONS = {
+    "Recent": "recent",
+    "Smileys": "smileys",
+    "Gestures": "gestures",
+    "People": "people",
+    "Animals": "animals",
+    "Food": "food",
+    "Travel": "travel",
+    "Activities": "activities",
+    "Objects": "objects",
+    "Symbols": "symbols",
+    "Arrows": "arrows",
+    "Flags": "flags",
+}
+# Pixel size the tab icons are rendered at.
+TAB_ICON_SIZE = 22
+# Single colour every tab icon is tinted to, so mismatched source SVGs all
+# render monochrome and on-theme.
+TAB_ICON_RGB = (0xCD, 0xD6, 0xD0)
 
 
 def _load_css():
@@ -48,6 +68,39 @@ def _load_css():
         path = os.path.join(os.path.dirname(__file__), STYLE_FILE)
         with open(path, "rb") as handle:
             return handle.read()
+
+
+def _monochrome(pixbuf, rgb=TAB_ICON_RGB):
+    """Recolour every visible pixel to ``rgb``, keeping alpha.
+
+    Tints any source icon (line or filled, any colour) to a single on-theme
+    colour so the tab bar stays monochrome regardless of what SVGs are dropped
+    in. Anti-aliased edges blend naturally because alpha is preserved.
+    """
+    if not pixbuf.get_has_alpha():
+        pixbuf = pixbuf.add_alpha(False, 0, 0, 0)
+    width = pixbuf.get_width()
+    height = pixbuf.get_height()
+    stride = pixbuf.get_rowstride()
+    data = bytearray(pixbuf.get_pixels())
+    r, g, b = rgb
+    for y in range(height):
+        base = y * stride
+        for x in range(width):
+            i = base + x * 4
+            if data[i + 3]:  # only where the pixel is visible
+                data[i] = r
+                data[i + 1] = g
+                data[i + 2] = b
+    return GdkPixbuf.Pixbuf.new_from_bytes(
+        GLib.Bytes.new(bytes(data)),
+        GdkPixbuf.Colorspace.RGB,
+        True,
+        8,
+        width,
+        height,
+        stride,
+    )
 
 
 def copy_to_clipboard(text):
@@ -181,8 +234,9 @@ class PickerWindow(Gtk.Window):
     def _build_tabs(self):
         """A horizontally-scrolling row of one toggle button per category.
 
-        The button label is just the category's leading emoji (the dict keys
-        are like ``"😀  Smileys"``), with the full name shown as a tooltip.
+        Each tab shows a monochrome outline icon (mojify/icons/), with the
+        category name as a tooltip. Falls back to the emoji glyph if the icon
+        can't be loaded.
         """
         scroller = Gtk.ScrolledWindow()
         scroller.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.NEVER)
@@ -192,9 +246,15 @@ class PickerWindow(Gtk.Window):
         scroller.add(row)
 
         for name in self._tab_keys:
-            icon, _, label = name.partition("  ")
-            btn = Gtk.ToggleButton(label=icon)
-            btn.set_tooltip_text(label or icon)
+            emoji, _, label = name.partition("  ")
+            btn = Gtk.ToggleButton()
+            image = self._tab_image(label)
+            if image is not None:
+                btn.set_image(image)
+                btn.set_always_show_image(True)
+            else:
+                btn.set_label(emoji)
+            btn.set_tooltip_text(label or emoji)
             btn.set_relief(Gtk.ReliefStyle.NONE)
             btn.get_style_context().add_class("mojify-tab")
             btn.set_active(name == self.current_category)
@@ -203,6 +263,22 @@ class PickerWindow(Gtk.Window):
             row.pack_start(btn, False, False, 0)
 
         return scroller
+
+    def _tab_image(self, label):
+        """Load a category's tab icon, tinted monochrome, or None if missing."""
+        import os
+
+        fname = TAB_ICONS.get(label)
+        if not fname:
+            return None
+        path = os.path.join(os.path.dirname(__file__), "icons", f"{fname}.svg")
+        try:
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
+                path, TAB_ICON_SIZE, TAB_ICON_SIZE
+            )
+            return Gtk.Image.new_from_pixbuf(_monochrome(pixbuf))
+        except Exception:
+            return None
 
     def _sync_tab_buttons(self, active_name):
         """Visually mark ``active_name`` as the selected tab (or none if None)."""
@@ -248,19 +324,21 @@ class PickerWindow(Gtk.Window):
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
         )
 
-    def _make_cell(self, char, name):
+    def _make_cell(self, char, child):
         """Build a single emoji cell: just the large glyph.
 
-        The name isn't shown per-cell; hovering updates the footer instead.
-        An EventBox wraps the label so we can catch hover (enter) events.
+        The name isn't shown per-cell. Hovering selects this ``child`` so the
+        highlight follows the cursor (and stays on the last one hovered); the
+        footer updates via the selection-changed handler. An EventBox wraps the
+        label so we can catch hover (enter) events.
         """
         ebox = Gtk.EventBox()
         ebox.get_style_context().add_class("mojify-cell")
         # Input-only: receive hover events without painting over the cell's
-        # selection/hover highlight (which lives on the flowboxchild).
+        # selection highlight (which lives on the flowboxchild).
         ebox.set_visible_window(False)
         ebox.add_events(Gdk.EventMask.ENTER_NOTIFY_MASK)
-        ebox.connect("enter-notify-event", self._on_cell_hover, char, name)
+        ebox.connect("enter-notify-event", self._on_cell_hover, child)
 
         emoji_label = Gtk.Label(label=char)
         emoji_label.get_style_context().add_class("mojify-emoji")
@@ -268,14 +346,16 @@ class PickerWindow(Gtk.Window):
         return ebox
 
     def _set_footer(self, char, name):
-        self.footer.set_text(f"{char}   {name}" if char else "")
+        self.footer.set_text(f"{char}   {display_name(name)}" if char else "")
 
-    def _on_cell_hover(self, _widget, _event, char, name):
-        self._set_footer(char, name)
+    def _on_cell_hover(self, _widget, _event, child):
+        # Move the selection (the mint highlight) to the hovered cell. It stays
+        # there until another cell is hovered or the arrows move it.
+        self.flowbox.select_child(child)
         return False
 
     def _on_selection_changed(self, flowbox):
-        """Keyboard navigation moves the selection; mirror it in the footer."""
+        """Selection moves via hover or arrow keys; mirror it in the footer."""
         selected = flowbox.get_selected_children()
         if selected:
             child = selected[0]
@@ -301,7 +381,7 @@ class PickerWindow(Gtk.Window):
             child = Gtk.FlowBoxChild()
             child.emoji_char = char  # stash for later retrieval
             child.emoji_name = name
-            child.add(self._make_cell(char, name))
+            child.add(self._make_cell(char, child))
             self.flowbox.add(child)
 
         self.flowbox.show_all()

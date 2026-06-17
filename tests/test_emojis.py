@@ -1,6 +1,24 @@
 """Tests for the emoji dataset and search ranking."""
 
-from mojify.emojis import BY_CHAR, CATEGORIES, EMOJIS, _keyword_match, search
+from mojify.emojis import (
+    BY_CHAR,
+    CATEGORIES,
+    EMOJIS,
+    _keyword_match,
+    display_name,
+    search,
+)
+
+
+def test_display_name_capitalisation():
+    assert display_name("flag india") == "Flag India"
+    assert display_name("grinning face") == "Grinning Face"
+    # Minor connector words stay lowercase (but never the first word).
+    assert display_name("face with tears of joy") == "Face with Tears of Joy"
+    # Existing capitalisation within a word is preserved.
+    assert display_name("OK hand") == "OK Hand"
+    assert display_name("rescue worker's helmet") == "Rescue Worker's Helmet"
+    assert display_name("1st place medal") == "1st Place Medal"
 
 
 def test_flat_list_matches_categories():

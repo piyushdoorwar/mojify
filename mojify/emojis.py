@@ -626,7 +626,7 @@ CATEGORIES = {
     ("💉", "syringe", "shot vaccine medical needle"),
     ("🩹", "adhesive bandage", "band-aid hurt heal"),
     ("🌡️", "thermometer", "temperature fever hot"),
-    ("🧬", "dna", "genetics science biology"),
+    ("🧬", "DNA", "genetics science biology dna"),
     ("🦠", "microbe", "germ virus bacteria"),
     ("🧪", "test tube", "science lab chemistry"),
     ("🧫", "petri dish", "science lab bacteria"),
@@ -948,3 +948,30 @@ def _keyword_match(query, keywords):
     matching "heart") while still being forgiving for partial typing.
     """
     return any(kw.startswith(query) for kw in keywords.lower().split())
+
+
+# Lowercased connector words kept lowercase when title-casing a display name
+# (unless they're the first word) — gives "Face with Tears of Joy".
+_MINOR_WORDS = {
+    "a", "an", "and", "as", "at", "but", "by", "for",
+    "in", "of", "on", "or", "the", "to", "with",
+}
+
+
+def display_name(name):
+    """Return ``name`` nicely capitalised for display.
+
+    The bundled names are lowercase (better for search); this title-cases them
+    for the UI: ``"flag india"`` → ``"Flag India"``,
+    ``"face with tears of joy"`` → ``"Face with Tears of Joy"``. Only the first
+    character of each word is touched, so ``"OK hand"`` and ``"worker's"`` keep
+    their existing capitalisation.
+    """
+    words = name.split()
+    out = []
+    for i, word in enumerate(words):
+        if i and word.lower() in _MINOR_WORDS:
+            out.append(word.lower())
+        else:
+            out.append(word[:1].upper() + word[1:])
+    return " ".join(out)
