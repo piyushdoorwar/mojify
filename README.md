@@ -77,7 +77,7 @@ mojify --list | fzf | cut -f1 | wl-copy
 
 ---
 
-## Set up the `Super + .` keyboard shortcut (GNOME)
+## Set up the `Ctrl + .` keyboard shortcut (GNOME)
 
 The whole point is to summon mojify with one keystroke. Bind it as a custom
 shortcut:
@@ -88,14 +88,14 @@ shortcut:
    - **Name:** `mojify`
    - **Command:** `mojify`
      *(if that doesn't work, use the absolute path — run `which mojify` to find it, e.g. `/home/you/.local/bin/mojify`)*
-   - **Shortcut:** press `Super + .`
+   - **Shortcut:** press `Ctrl + .`
 4. Click **Add**.
 
-Now press `Super + .` anywhere and the picker pops up.
+Now press `Ctrl + .` anywhere and the picker pops up.
 
-> **Note:** `Super` is the Windows/⌘ key. If GNOME says the shortcut is
-> already in use, pick another combo (e.g. `Super + E`) — the steps are the
-> same.
+> **Note:** `Ctrl + .` is just a recommendation — bind mojify to whatever
+> shortcut you like. If GNOME says the combo is already in use, pick another
+> (e.g. `Super + .`); the steps are the same.
 
 > **Tip:** if you installed with `pip install --user`, make sure
 > `~/.local/bin` is on your `PATH`, or just use the absolute path in the
@@ -118,7 +118,7 @@ borderless pop-up, so it intentionally has no titlebar icon.
 
 ## How it works
 
-1. Press your shortcut (e.g. `Super + .`).
+1. Press your shortcut (e.g. `Ctrl + .`).
 2. A small floating search window appears in the center of the screen,
    always on top, with no titlebar.
 3. Browse by **category tab** — starting with a **🕒 Recent** tab of your

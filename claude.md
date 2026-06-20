@@ -7,7 +7,8 @@ Context for Claude (and humans) working in this repo.
 `mojify` is a **Wayland-native emoji picker** for Ubuntu/GNOME, published on
 PyPI (`pip install mojify`). The user presses a keyboard shortcut, searches for
 an emoji, and it's copied to the clipboard — they paste it with `Ctrl + V`.
-The launch shortcut documented in the README is `Super + .`.
+The launch shortcut documented in the README is `Ctrl + .` (a recommendation;
+users can bind any shortcut).
 
 ## Core design constraints — do not break these
 
