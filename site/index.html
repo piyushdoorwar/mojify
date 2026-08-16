@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mojify — A Wayland-native emoji picker for Linux</title>
+  <meta name="description" content="Mojify is a fast, private emoji picker for Ubuntu and GNOME on Wayland. Press a shortcut, search, copy, and paste anywhere.">
+  <meta name="theme-color" content="#070a09">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <link rel="canonical" href="https://piyushdoorwar.github.io/mojify/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Mojify">
+  <meta property="og:title" content="Mojify — Emoji at the speed of thought">
+  <meta property="og:description" content="A small, Wayland-native emoji picker for Ubuntu and GNOME. Search, copy, paste. No input-injection hacks.">
+  <meta property="og:url" content="https://piyushdoorwar.github.io/mojify/">
+  <meta property="og:image" content="https://raw.githubusercontent.com/piyushdoorwar/mojify/main/assets/logo.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Mojify — Emoji at the speed of thought">
+  <meta name="twitter:description" content="A Wayland-native emoji picker for Ubuntu and GNOME.">
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/piyushdoorwar/mojify/main/assets/logo.png">
+
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Mojify",
+      "description": "A Wayland-native emoji picker for Ubuntu and GNOME.",
+      "url": "https://piyushdoorwar.github.io/mojify/",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Linux with Wayland and GNOME",
+      "isAccessibleForFree": true,
+      "license": "https://github.com/piyushdoorwar/mojify/blob/main/LICENSE",
+      "downloadUrl": "https://pypi.org/project/mojify/",
+      "codeRepository": "https://github.com/piyushdoorwar/mojify"
+    }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Mojify home">
+      <img src="assets/logo.svg" alt="">
+      <span>mojify</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary navigation">
+      <a href="#features">Features</a>
+      <a href="#workflow">How it works</a>
+      <a href="#install">Install</a>
+    </nav>
+    <a class="header-github" href="https://github.com/piyushdoorwar/mojify" aria-label="View Mojify on GitHub">
+      <img src="assets/github.svg" alt="">
+      <span>GitHub</span>
+    </a>
+  </header>
+
+  <main id="content">
+    <section class="hero" id="top">
+      <div class="hero-copy">
+        <p class="eyebrow"><span></span> Built for GNOME on Wayland</p>
+        <h1>Your emoji.<br><em>One shortcut away.</em></h1>
+        <p class="hero-lede">A tiny, keyboard-first emoji picker that stays out of your way. Search, hit Enter, then paste into any app.</p>
+        <div class="hero-actions">
+          <a class="button primary-button" href="#install">Install Mojify <span aria-hidden="true">↓</span></a>
+          <a class="button secondary-button" href="https://pypi.org/project/mojify/">View on PyPI <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="hero-command" aria-label="Install command">
+          <span class="prompt" aria-hidden="true">$</span>
+          <code>pip install mojify</code>
+          <button class="copy-button" type="button" data-copy="pip install mojify" aria-label="Copy pip install command">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h11v11H8zM5 16H4V4h12v1"/></svg>
+            <span>Copy</span>
+          </button>
+        </div>
+        <p class="hero-note"><span>●</span> Free, open source, and fully offline</p>
+      </div>
+
+      <div class="preview-wrap">
+        <div class="shortcut-hint" aria-hidden="true"><kbd>Ctrl</kbd><b>+</b><kbd>.</kbd></div>
+        <div class="desktop-stage" aria-label="Interactive preview of the Mojify emoji picker">
+          <div class="desktop-topbar">
+            <span>Activities</span>
+            <time>11:42</time>
+            <div class="system-icons"><span>◒</span><span>⌁</span><span>▰</span></div>
+          </div>
+          <div class="desktop-glow glow-one"></div>
+          <div class="desktop-glow glow-two"></div>
+
+          <div class="picker-window">
+            <div class="category-tabs" role="tablist" aria-label="Emoji category">
+              <button class="category-tab is-active" type="button" data-category="recent" role="tab" aria-selected="true" title="Recent">◷</button>
+              <button class="category-tab" type="button" data-category="smileys" role="tab" aria-selected="false" title="Smileys">☺</button>
+              <button class="category-tab" type="button" data-category="gestures" role="tab" aria-selected="false" title="Gestures">♧</button>
+              <button class="category-tab" type="button" data-category="animals" role="tab" aria-selected="false" title="Animals">♘</button>
+              <button class="category-tab" type="button" data-category="food" role="tab" aria-selected="false" title="Food">♨</button>
+              <button class="category-tab" type="button" data-category="travel" role="tab" aria-selected="false" title="Travel">⌁</button>
+              <button class="category-tab" type="button" data-category="objects" role="tab" aria-selected="false" title="Objects">◇</button>
+              <button class="category-tab" type="button" data-category="symbols" role="tab" aria-selected="false" title="Symbols">☆</button>
+            </div>
+            <label class="search-field">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
+              <span class="sr-only">Search emoji</span>
+              <input id="emojiSearch" type="search" value="smile" autocomplete="off" spellcheck="false" placeholder="Search emoji — e.g. fire, smile, heart">
+              <kbd>Esc</kbd>
+            </label>
+            <div class="emoji-grid" id="emojiGrid" aria-live="polite"></div>
+            <div class="picker-footer">
+              <span id="emojiName">Grinning face with smiling eyes</span>
+              <span class="footer-key"><kbd>↵</kbd> copy</span>
+            </div>
+          </div>
+
+          <div class="copied-toast" id="copiedToast" role="status">
+            <strong id="toastEmoji">😄</strong>
+            <span><b>Copied</b><small>Ready to paste anywhere</small></span>
+          </div>
+        </div>
+        <p class="preview-caption"><span>Try it</span> Search or click an emoji in the preview.</p>
+      </div>
+    </section>
+
+    <section class="proof-strip" aria-label="Mojify highlights">
+      <div><strong>Wayland</strong><span>native by design</span></div>
+      <div><strong>100%</strong><span>local &amp; offline</span></div>
+      <div><strong>0</strong><span>telemetry calls</span></div>
+      <div><strong>3.8+</strong><span>Python support</span></div>
+      <div><strong>MIT</strong><span>open-source license</span></div>
+    </section>
+
+    <section class="section problem-section">
+      <div class="section-kicker">Why Mojify</div>
+      <div class="problem-heading">
+        <h2>Wayland changed the rules.<br><span>Mojify plays by them.</span></h2>
+        <p>Wayland intentionally blocks apps from typing into other windows. Mojify uses the secure path: copy to your clipboard, then let you paste exactly where you choose.</p>
+      </div>
+      <div class="comparison-card">
+        <div class="comparison-side old-way">
+          <span class="comparison-label">The brittle way</span>
+          <div class="comparison-icon">⌨</div>
+          <h3>Synthetic keystrokes</h3>
+          <p>Input injection tools fight the desktop security model and can fail across Wayland apps.</p>
+          <span class="status bad"><i>×</i> Blocked on Wayland</span>
+        </div>
+        <div class="comparison-divider"><span>vs</span></div>
+        <div class="comparison-side new-way">
+          <span class="comparison-label">The Mojify way</span>
+          <div class="comparison-icon">⎘</div>
+          <h3>Clipboard first</h3>
+          <p>Mojify copies your choice with <code>wl-copy</code>. You stay in control of where it goes.</p>
+          <span class="status good"><i>✓</i> Works everywhere</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section features-section" id="features">
+      <div class="section-heading">
+        <div>
+          <p class="section-kicker">Small tool, sharp edges</p>
+          <h2>Everything you need.<br><span>Nothing you don’t.</span></h2>
+        </div>
+        <p>Built to feel native, launch quickly, and disappear the second the job is done.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card feature-wide">
+          <div class="feature-copy">
+            <span class="feature-number">01</span>
+            <h3>Search that understands you</h3>
+            <p>Find emoji by name or everyday keywords like <code>fire</code>, <code>party</code>, or <code>rocket</code>. Results update as you type.</p>
+          </div>
+          <div class="mini-search-demo" aria-hidden="true">
+            <div><span>⌕</span><b>celebrate</b><i></i></div>
+            <ul>
+              <li><strong>🎉</strong><span>Party popper<small>celebrate · party · tada</small></span><kbd>↵</kbd></li>
+              <li><strong>🥳</strong><span>Partying face<small>celebrate · birthday · fun</small></span></li>
+              <li><strong>🙌</strong><span>Raising hands<small>celebrate · hooray · praise</small></span></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="feature-card">
+          <span class="feature-number">02</span>
+          <div class="feature-symbol">◷</div>
+          <h3>Your recents, remembered</h3>
+          <p>Your most-used emoji stay one tab away, saved locally in your XDG state directory.</p>
+        </article>
+
+        <article class="feature-card">
+          <span class="feature-number">03</span>
+          <div class="feature-symbol">⌁</div>
+          <h3>Keyboard from start to finish</h3>
+          <p>Open, search, navigate with arrows, press Enter to copy—or Escape to vanish.</p>
+        </article>
+
+        <article class="feature-card">
+          <span class="feature-number">04</span>
+          <div class="feature-symbol">◉</div>
+          <h3>Native GTK, tiny footprint</h3>
+          <p>Built with GTK3, already present on Ubuntu GNOME. No Electron shell and no heavy runtime.</p>
+        </article>
+
+        <article class="feature-card">
+          <span class="feature-number">05</span>
+          <div class="feature-symbol">⌂</div>
+          <h3>Made for your desktop</h3>
+          <p>Optionally add Mojify to the GNOME app grid and dock with one built-in command.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section workflow-section" id="workflow">
+      <p class="section-kicker">Your new muscle memory</p>
+      <h2>Three beats. That’s it.</h2>
+      <div class="workflow-grid">
+        <article>
+          <div class="step-visual shortcut-visual"><kbd>Ctrl</kbd><b>+</b><kbd>.</kbd></div>
+          <span>01 / Summon</span>
+          <h3>Press your shortcut</h3>
+          <p>Bind <code>mojify</code> to any GNOME custom shortcut you like.</p>
+        </article>
+        <article>
+          <div class="step-visual type-visual"><span>⌕</span><b id="typingDemo">rocket</b><i></i></div>
+          <span>02 / Find</span>
+          <h3>Type what you mean</h3>
+          <p>Search by emoji name or a natural keyword. No category hunting required.</p>
+        </article>
+        <article>
+          <div class="step-visual paste-visual"><span>🚀</span><kbd>Ctrl</kbd><b>+</b><kbd>V</kbd></div>
+          <span>03 / Paste</span>
+          <h3>Enter, then paste</h3>
+          <p>The picker closes instantly and your emoji is ready for any app.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section install-section" id="install">
+      <div class="install-copy">
+        <p class="section-kicker">Get started</p>
+        <h2>Two commands.<br><span>One tiny upgrade.</span></h2>
+        <p>Install the Wayland clipboard helper, then grab Mojify from PyPI. GTK3 already ships with a standard Ubuntu GNOME desktop.</p>
+        <div class="requirements">
+          <span><i>✓</i> Ubuntu / GNOME</span>
+          <span><i>✓</i> Wayland session</span>
+          <span><i>✓</i> Python 3.8+</span>
+        </div>
+      </div>
+
+      <div class="terminal-card">
+        <div class="terminal-bar">
+          <div><i></i><i></i><i></i></div>
+          <span>Terminal</span>
+          <span></span>
+        </div>
+        <div class="terminal-body">
+          <div class="terminal-step">
+            <span class="terminal-label"><b>1</b> Install the clipboard helper</span>
+            <div class="terminal-command">
+              <code><span>$</span> sudo apt install wl-clipboard</code>
+              <button class="copy-button" type="button" data-copy="sudo apt install wl-clipboard" aria-label="Copy clipboard helper install command"><span>Copy</span></button>
+            </div>
+          </div>
+          <div class="terminal-step">
+            <span class="terminal-label"><b>2</b> Install Mojify from PyPI</span>
+            <div class="terminal-command">
+              <code><span>$</span> pip install mojify</code>
+              <button class="copy-button" type="button" data-copy="pip install mojify" aria-label="Copy Mojify install command"><span>Copy</span></button>
+            </div>
+          </div>
+          <div class="terminal-step muted-step">
+            <span class="terminal-label"><b>3</b> Launch it</span>
+            <div class="terminal-command">
+              <code><span>$</span> mojify</code>
+              <button class="copy-button" type="button" data-copy="mojify" aria-label="Copy Mojify launch command"><span>Copy</span></button>
+            </div>
+          </div>
+          <div class="terminal-success"><span>✓</span> That’s it. Now bind <code>mojify</code> to your favorite shortcut.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section shortcut-section">
+      <div>
+        <p class="section-kicker">One last step</p>
+        <h2>Make it yours.</h2>
+        <p>In GNOME, open <strong>Settings → Keyboard → View and Customize Shortcuts → Custom Shortcuts</strong>. Set the command to <code>mojify</code> and choose a shortcut that feels natural.</p>
+      </div>
+      <div class="shortcut-card">
+        <span>Our suggestion</span>
+        <div><kbd>Ctrl</kbd><b>+</b><kbd>.</kbd></div>
+        <small>Use any combination you prefer</small>
+      </div>
+    </section>
+
+    <section class="final-cta">
+      <img src="assets/logo.svg" alt="">
+      <p class="section-kicker">Ready when you are</p>
+      <h2>Give your keyboard<br>a little more personality. <span>✨</span></h2>
+      <p>Open source. No tracking. Just emoji.</p>
+      <div class="hero-actions">
+        <a class="button primary-button" href="#install">Install Mojify <span aria-hidden="true">↓</span></a>
+        <a class="button secondary-button github-button" href="https://github.com/piyushdoorwar/mojify"><img src="assets/github.svg" alt=""> Star on GitHub</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <a class="brand" href="#top"><img src="assets/logo.svg" alt=""><span>mojify</span></a>
+    <p>Made for Linux, with feeling. <span>☺</span></p>
+    <nav aria-label="Footer navigation">
+      <a href="https://pypi.org/project/mojify/">PyPI</a>
+      <a href="https://github.com/piyushdoorwar/mojify">GitHub</a>
+      <a href="https://github.com/piyushdoorwar/mojify/blob/main/LICENSE">MIT License</a>
+    </nav>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
