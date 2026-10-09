@@ -131,6 +131,9 @@ borderless pop-up, so it intentionally has no titlebar icon.
 6. Press **`Ctrl + V`** wherever you want the emoji.
 7. Press **Escape** at any time to dismiss the picker without selecting.
 
+The picker follows your system's light/dark setting, switching live if you
+change it while it is open.
+
 ---
 
 ## Known limitation
@@ -150,6 +153,10 @@ mojify/
 │   ├── __init__.py
 │   ├── __main__.py     # CLI entry point (python -m mojify / `mojify`)
 │   ├── picker.py       # GTK3 floating picker window
+│   ├── theme.py        # fonts, OS light/dark detection, stylesheet assembly
+│   ├── style.css       # GTK stylesheet (colours come from the palettes)
+│   ├── colors-light.css / colors-dark.css   # light and dark palettes
+│   ├── fonts/          # bundled DM Sans (SIL Open Font License)
 │   └── emojis.py       # bundled emoji dataset + search
 ├── setup.py
 ├── pyproject.toml
@@ -168,7 +175,9 @@ Contributions are very welcome! 🎉
    - **Adding emojis?** Edit [`mojify/emojis.py`](mojify/emojis.py). Each entry
      is a `(character, name, keywords)` tuple. Add generous keywords —
      they're what make search forgiving.
-   - **UI tweaks?** They live in [`mojify/picker.py`](mojify/picker.py).
+   - **UI tweaks?** They live in [`mojify/picker.py`](mojify/picker.py);
+     styling is in [`mojify/style.css`](mojify/style.css) with colours in
+     `colors-light.css` / `colors-dark.css`.
 3. Test locally with an editable install:
    ```bash
    pip install -e .
@@ -184,3 +193,6 @@ the UI and `wl-clipboard` for the clipboard — nothing more.
 ## License
 
 [MIT](LICENSE) © 2026 Piyush Doorwar
+
+The bundled DM Sans font is licensed under the
+[SIL Open Font License 1.1](mojify/fonts/OFL.txt).

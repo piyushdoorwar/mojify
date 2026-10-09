@@ -15,7 +15,7 @@ gi.require_version("Gtk", "3.0")
 gi.require_version("Gdk", "3.0")
 from gi.repository import Gdk, GdkPixbuf, GLib, Gtk  # noqa: E402
 
-from . import recents
+from . import recents, theme
 from .emojis import BY_CHAR, CATEGORIES, display_name, search
 
 # How many search results to show at once. Keeps the grid responsive on broad
@@ -28,8 +28,6 @@ COLUMNS = 7
 # constant size no matter how many emojis a tab/search shows.
 GRID_WIDTH = 560
 GRID_HEIGHT = 360
-# Stylesheet bundled alongside this module.
-STYLE_FILE = "style.css"
 # Label of the synthetic, always-first "recently used" tab.
 RECENT_KEY = "🕒  Recent"
 # Maps a category's display name to its outline tab icon (mojify/icons/<x>.svg).
@@ -49,25 +47,17 @@ TAB_ICONS = {
 }
 # Pixel size the tab icons are rendered at.
 TAB_ICON_SIZE = 22
-# Single colour every tab icon is tinted to, so mismatched source SVGs all
-# render monochrome and on-theme.
+# Every tab icon is tinted to one colour (``@tab_icon`` in the active palette,
+# see colors-*.css), so mismatched source SVGs all render monochrome and
+# on-theme. This is the fallback if the palette can't be read.
 TAB_ICON_RGB = (0xCD, 0xD6, 0xD0)
 
 
-def _load_css():
-    """Return the bundled ``style.css`` as bytes (for ``load_from_data``)."""
+def _tab_icon_rgb(scheme):
     try:
-        from importlib.resources import files
-
-        return (files(__package__) / STYLE_FILE).read_bytes()
-    except (ImportError, AttributeError, FileNotFoundError):
-        # Python 3.8 (no importlib.resources.files) or a non-standard layout:
-        # fall back to reading next to this module on disk.
-        import os
-
-        path = os.path.join(os.path.dirname(__file__), STYLE_FILE)
-        with open(path, "rb") as handle:
-            return handle.read()
+        return theme.palette_rgb(scheme, "tab_icon")
+    except Exception:
+        return TAB_ICON_RGB
 
 
 def _monochrome(pixbuf, rgb=TAB_ICON_RGB):
@@ -165,10 +155,16 @@ class PickerWindow(Gtk.Window):
         self.set_border_width(0)
 
         self._set_window_icon()
+        # Follow the OS light/dark preference, live.
+        self._css_provider = None
+        self._scheme = theme.current_scheme()
         self._apply_styles()
+        self._scheme_watcher = theme.SchemeWatcher(self._on_scheme_changed, self._scheme)
 
         outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         outer.get_style_context().add_class("mojify-root")
+        self._root = outer
+        self._sync_scheme_class()
         self.add(outer)
 
         # Layout (top → bottom): category tabs, search box, emoji grid, and a
@@ -179,6 +175,7 @@ class PickerWindow(Gtk.Window):
         # Start on Recent if there's any history, otherwise the first category.
         self.current_category = RECENT_KEY if recents.top(1) else next(iter(CATEGORIES))
         self._tab_buttons = {}
+        self._tab_sources = {}  # Gtk.Image -> untinted source pixbuf
         outer.pack_start(self._build_tabs(), False, False, 0)
 
         # Search entry below the tabs.
@@ -195,7 +192,7 @@ class PickerWindow(Gtk.Window):
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         scrolled.set_vexpand(True)
-        # Disable overlay (fading) scrollbars so the purple bar stays visible.
+        # Disable overlay (fading) scrollbars so the mint bar stays visible.
         scrolled.set_overlay_scrolling(False)
         # Fixed viewport: never grow/shrink to fit content.
         scrolled.set_propagate_natural_width(False)
@@ -220,14 +217,16 @@ class PickerWindow(Gtk.Window):
         # Footer: names the hovered / focused emoji (so the grid itself can show
         # just the large glyphs, no per-cell label).
         self.footer = Gtk.Label(label="")
-        self.footer.set_halign(Gtk.Align.START)
+        # Fill the width so the border-top divider spans the window; text stays left.
+        self.footer.set_halign(Gtk.Align.FILL)
+        self.footer.set_xalign(0.0)
         self.footer.set_ellipsize(3)  # PANGO_ELLIPSIZE_END
         self.footer.get_style_context().add_class("mojify-footer")
         outer.pack_start(self.footer, False, False, 0)
 
         # Global key handling (Escape to close, arrows to navigate).
         self.connect("key-press-event", self._on_key_press)
-        self.connect("destroy", Gtk.main_quit)
+        self.connect("destroy", self._on_destroy)
 
         self._populate("")
 
@@ -276,9 +275,19 @@ class PickerWindow(Gtk.Window):
             pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
                 path, TAB_ICON_SIZE, TAB_ICON_SIZE
             )
-            return Gtk.Image.new_from_pixbuf(_monochrome(pixbuf))
+            image = Gtk.Image.new_from_pixbuf(
+                _monochrome(pixbuf, _tab_icon_rgb(self._scheme))
+            )
+            self._tab_sources[image] = pixbuf  # so the tint can follow the scheme
+            return image
         except Exception:
             return None
+
+    def _retint_tab_icons(self):
+        """Re-tint the tab icons after a light/dark switch."""
+        rgb = _tab_icon_rgb(self._scheme)
+        for image, source in self._tab_sources.items():
+            image.set_from_pixbuf(_monochrome(source, rgb))
 
     def _sync_tab_buttons(self, active_name):
         """Visually mark ``active_name`` as the selected tab (or none if None)."""
@@ -315,14 +324,38 @@ class PickerWindow(Gtk.Window):
             pass
 
     def _apply_styles(self):
-        """Load the bundled ``style.css`` and apply it to the whole screen."""
-        provider = Gtk.CssProvider()
-        provider.load_from_data(_load_css())
-        Gtk.StyleContext.add_provider_for_screen(
-            Gdk.Screen.get_default(),
-            provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
-        )
+        """Load the palette for the current scheme plus ``style.css``.
+
+        The same provider is reloaded in place on a scheme change, which
+        restyles every widget.
+        """
+        if self._css_provider is None:
+            self._css_provider = Gtk.CssProvider()
+            Gtk.StyleContext.add_provider_for_screen(
+                Gdk.Screen.get_default(),
+                self._css_provider,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
+            )
+        self._css_provider.load_from_data(theme.build_css(self._scheme))
+
+    def _sync_scheme_class(self):
+        """Tag the root with ``.mojify-light`` / ``.mojify-dark`` (for CSS hooks)."""
+        ctx = self._root.get_style_context()
+        for scheme in (theme.LIGHT, theme.DARK):
+            if scheme == self._scheme:
+                ctx.add_class(f"mojify-{scheme}")
+            else:
+                ctx.remove_class(f"mojify-{scheme}")
+
+    def _on_scheme_changed(self, scheme):
+        self._scheme = scheme
+        self._apply_styles()
+        self._sync_scheme_class()
+        self._retint_tab_icons()
+
+    def _on_destroy(self, _widget):
+        self._scheme_watcher.close()
+        Gtk.main_quit()
 
     def _make_cell(self, char, child):
         """Build a single emoji cell: just the large glyph.
@@ -475,6 +508,9 @@ def run_picker(to_stdout=False, notify=True):
     # to show the logo in the dock/overview. See `mojify --install-desktop`.
     GLib.set_prgname("mojify")
     GLib.set_application_name("mojify")
+    # Make the bundled DM Sans available to this process before any widget
+    # (and so Pango's font map) exists. Falls back to system fonts silently.
+    theme.register_fonts()
 
     win = PickerWindow(to_stdout=to_stdout, notify=notify)
     win.connect("focus-out-event", lambda *_: win.close())

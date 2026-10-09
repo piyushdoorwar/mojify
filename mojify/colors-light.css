@@ -1,0 +1,20 @@
+/*
+ * mojify palette - light. House neutrals with a deep mint accent that keeps
+ * at least 4.5:1 contrast on white (#0d7a5a is ~5.3:1).
+ * Paired with style.css by mojify/theme.py; names must match colors-dark.css.
+ */
+@define-color canvas #fcfcfc;          /* window background */
+@define-color surface #ffffff;         /* search field */
+@define-color line #dce3de;            /* window + field borders */
+@define-color divider #e6ebe7;         /* tab bar / footer rules */
+@define-color ink #0f1a14;             /* primary text */
+@define-color grey #4b5a52;            /* secondary text, icons */
+@define-color muted #78857d;           /* placeholders, hints */
+@define-color tab_icon #0f1a14;        /* tint for the tab icons (read by Python) */
+@define-color accent #0d7a5a;          /* focus ring, caret, active tab, scrollbar */
+@define-color accent_hover #0a6249;
+@define-color accent_ink #ffffff;      /* text on an accent fill */
+@define-color hover_fill #ecf7f2;      /* light mint tint */
+@define-color selected_fill #d3efe2;   /* selected emoji cell */
+@define-color scroll_thumb alpha(@accent, 0.4);
+@define-color scroll_thumb_hover alpha(@accent, 0.65);

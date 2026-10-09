@@ -1,0 +1,20 @@
+/*
+ * mojify palette - dark. House charcoal neutrals with Mojify's bright mint
+ * for focus/caret/underline and dark-mint tints for fills.
+ * Paired with style.css by mojify/theme.py; names must match colors-light.css.
+ */
+@define-color canvas #161719;          /* window background */
+@define-color surface #1e1f22;         /* search field */
+@define-color line #3a3c41;            /* window + field borders */
+@define-color divider #2a2b2f;         /* tab bar / footer rules */
+@define-color ink #f3f4f5;             /* primary text */
+@define-color grey #b0b4ba;            /* secondary text, icons */
+@define-color muted #9095a0;           /* placeholders, hints */
+@define-color tab_icon #f3f4f5;        /* tint for the tab icons (read by Python) */
+@define-color accent #7fe0b0;          /* focus ring, caret, active tab, scrollbar */
+@define-color accent_hover #a6ebc9;
+@define-color accent_ink #0f1a14;      /* text on an accent fill */
+@define-color hover_fill #1b2d25;      /* dark mint tint */
+@define-color selected_fill #2e6b51;   /* selected emoji cell */
+@define-color scroll_thumb #3f7d63;
+@define-color scroll_thumb_hover #5aa17f;

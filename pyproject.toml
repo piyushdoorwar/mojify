@@ -50,8 +50,16 @@ mojify = "mojify.__main__:main"
 packages = ["mojify"]
 
 [tool.setuptools.package-data]
-# Ship the GTK stylesheet, logo, and tab icons inside the wheel/sdist.
-mojify = ["style.css", "logo.svg", "icons/*.svg"]
+# Ship the GTK stylesheet + light/dark palettes, logo, tab icons, and the
+# bundled DM Sans font (with its OFL licence) inside the wheel/sdist.
+mojify = [
+    "style.css",
+    "colors-*.css",
+    "logo.svg",
+    "icons/*.svg",
+    "fonts/*.ttf",
+    "fonts/OFL.txt",
+]
 
 [tool.setuptools_scm]
 # Derive the version from the latest `vX.Y.Z` git tag. Also writes the

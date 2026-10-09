@@ -1,31 +1,23 @@
 /*
- * mojify theme — "Black & Mint".
+ * mojify stylesheet.
  *
- * Pitch-black background with soft sage-mint accents. Interactive surfaces use
- * dark-mint tints so they read against the pure black.
- *
- * Palette:
- *   #000000  pitch-black background
- *   #0c0c0c  search field surface (barely lifted off black)
- *   #13241d  hover surface (dark mint tint)
- *   #1d3a2d  active tab fill
- *   #2c3431  subtle borders
- *   #7fe0b0  soft mint - focus, caret, active-tab underline, scrollbar
- *   #2e6b51  deep mint - selection fill
- *   #dfe7e3  soft off-white - primary text
- *   #859089  sage grey - secondary text
+ * Follows the OS light/dark preference. Colours are not defined here: they
+ * are @define-color names from colors-light.css / colors-dark.css, which
+ * mojify/theme.py prepends to this file for the active scheme. Text is set
+ * in the bundled DM Sans; emoji glyphs always use a colour emoji font.
  *
  * Edit freely; it is loaded at runtime, no rebuild needed for a source run.
  */
 
 .mojify-root {
-    background-color: #000000;
-    border: 1px solid #2c3431;
+    background-color: @canvas;
+    border: 1px solid @line;
     border-radius: 10px;
-    font-family: "Ubuntu", "Noto Sans", sans-serif;
+    font-family: "DM Sans", "Ubuntu", "Noto Sans", "Cantarell", sans-serif;
+    color: @ink;
 }
 
-/* Make the scroll container blend into the charcoal background. */
+/* Make the scroll container blend into the window background. */
 .mojify-root scrolledwindow,
 .mojify-root viewport,
 .mojify-root flowbox {
@@ -37,28 +29,28 @@
     margin: 12px 12px 8px 12px;
     padding: 9px 10px;
     font-size: 15px;
-    color: #dfe7e3;
-    background-color: #0c0c0c;
-    border: 1px solid #2c3431;
+    color: @ink;
+    background-color: @surface;
+    border: 1px solid @line;
     border-radius: 8px;
-    caret-color: #7fe0b0;
+    caret-color: @accent;
 }
 .mojify-search:focus {
-    border-color: #7fe0b0;
-    box-shadow: 0 0 0 1px #7fe0b0;
+    border-color: @accent;
+    box-shadow: 0 0 0 1px @accent;
 }
 .mojify-search image {
-    color: #859089;
+    color: @grey;
 }
 .mojify-search selection {
-    background-color: #2e6b51;
-    color: #ffffff;
+    background-color: @accent;
+    color: @accent_ink;
 }
 
 /* Category tabs (top of the window) */
 .mojify-tabs {
     padding: 9px 10px;
-    border-bottom: 1px solid #1c2722;
+    border-bottom: 1px solid @divider;
 }
 .mojify-tab {
     padding: 7px 9px;
@@ -68,20 +60,28 @@
     border: none;
     border-radius: 7px;
     background-color: transparent;
+    /* Drop the GTK theme's own button gradient/shadow so the tab bar looks
+     * the same in light and dark whatever the system theme is. */
+    background-image: none;
+    box-shadow: none;
+    text-shadow: none;
+    -gtk-icon-shadow: none;
     opacity: 0.5;
     transition: background-color 120ms ease, opacity 120ms ease;
 }
 .mojify-tab:hover {
     opacity: 0.9;
-    background-color: #13241d;
+    background-color: @hover_fill;
+    background-image: none;
 }
 .mojify-tab:checked {
     opacity: 1.0;
     background-color: transparent;
-    box-shadow: inset 0 -2px 0 0 #7fe0b0;
+    background-image: none;
+    box-shadow: inset 0 -2px 0 0 @accent;
 }
 
-/* Emoji grid — large, glyph-only cells (names show in the footer) */
+/* Emoji grid - large, glyph-only cells (names show in the footer) */
 .mojify-grid {
     padding: 6px 8px 6px 10px;
 }
@@ -95,32 +95,39 @@ flowboxchild {
     transition: background-color 120ms ease;
 }
 flowboxchild:hover {
-    background-color: #13241d;
+    background-color: @hover_fill;
 }
 flowboxchild:selected,
 flowboxchild:selected:focus {
-    background-color: #2e6b51;
+    background-color: @selected_fill;
 }
+/* Colour emoji font first so DM Sans never replaces the glyphs. */
 .mojify-emoji {
+    font-family: "Noto Color Emoji", "Apple Color Emoji", "Twemoji",
+        "Twitter Color Emoji", "JoyPixels", "EmojiOne Color", "Segoe UI Emoji",
+        emoji;
     font-size: 34px;
 }
-/* Muted text — placeholder rows (e.g. empty Recent). */
+/* Muted text - placeholder rows (e.g. empty Recent). */
 .mojify-name {
     font-size: 11px;
-    color: #859089;
+    color: @muted;
 }
 
-/* Footer — names the hovered / focused emoji */
+/* Footer - names the hovered / focused emoji. DM Sans for the name; the
+ * leading emoji falls through to the colour emoji font. */
 .mojify-footer {
     padding: 12px 16px;
     min-height: 26px;
+    font-family: "DM Sans", "Noto Color Emoji", "Apple Color Emoji", "Twemoji",
+        "Ubuntu", "Noto Sans", sans-serif;
     font-size: 15px;
     font-weight: 500;
-    color: #dfe7e3;
-    border-top: 1px solid #1c2722;
+    color: @ink;
+    border-top: 1px solid @divider;
 }
 
-/* Scrollbar - soft mint */
+/* Scrollbar - mint */
 scrollbar {
     background-color: transparent;
     border: none;
@@ -132,12 +139,12 @@ scrollbar slider {
     border-radius: 10px;
     border: 2px solid transparent;
     background-clip: padding-box;
-    background-color: #3f7d63;
+    background-color: @scroll_thumb;
     transition: background-color 120ms ease;
 }
 scrollbar slider:hover {
-    background-color: #5aa17f;
+    background-color: @scroll_thumb_hover;
 }
 scrollbar slider:active {
-    background-color: #7fe0b0;
+    background-color: @accent;
 }

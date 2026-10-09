@@ -34,7 +34,10 @@ mojify/
 │   ├── picker.py       # GTK3 floating picker window + clipboard + notify
 │   ├── emojis.py       # CATEGORIES dict + flat EMOJIS + BY_CHAR + search()
 │   ├── recents.py      # persistent "recently used" store (XDG state dir)
-│   ├── style.css       # GTK stylesheet (Charcoal & Mint theme)
+│   ├── theme.py        # bundled fonts, OS light/dark detection, CSS assembly
+│   ├── style.css       # GTK stylesheet rules (colours are @names only)
+│   ├── colors-light.css / colors-dark.css   # @define-color palettes
+│   ├── fonts/          # DM Sans variable TTF + its OFL licence
 │   └── logo.svg        # app icon / logo
 ├── tests/              # pytest suite (no GTK needed)
 ├── assets/logo.png     # raster logo for README/PyPI (absolute raw URL)
@@ -72,8 +75,31 @@ mojify/
   clearing the search restores the current category view.
 - On selection: `recents.record(char)`, then either print to stdout
   (`to_stdout`) or `copy_to_clipboard()` + optional `notify_copied()` toast.
-- Theme is loaded from `style.css` via `_load_css()`. The window sets app id
-  `mojify` (`GLib.set_prgname`) so GNOME maps it to `mojify.desktop`.
+- Theme follows the OS light/dark preference (see `theme.py`). The window sets
+  app id `mojify` (`GLib.set_prgname`) so GNOME maps it to `mojify.desktop`.
+
+## Theme (`theme.py`, `style.css`, `colors-*.css`)
+
+- House design tokens: DM Sans text, neutral surfaces (light `#fcfcfc` /
+  `#ffffff` / `#dce3de` / ink `#0f1a14`; dark `#161719` / `#1e1f22` /
+  `#3a3c41` / ink `#f3f4f5`) and Mojify's mint accent (`#0d7a5a` in light for
+  contrast on white, bright `#7fe0b0` in dark).
+- GTK3 CSS has no custom properties: each palette file defines the same
+  `@define-color` names, and `build_css(scheme)` prepends the right one to
+  `style.css`. Never put colour literals in `style.css`; add a name to **both**
+  palettes (a test checks they match). `@tab_icon` is also read by Python to
+  tint the tab icons.
+- Scheme detection: XDG portal `org.freedesktop.appearance color-scheme`
+  (1 dark, 2 light) -> `gtk-application-prefer-dark-theme` -> a GTK theme name
+  ending in `-dark` -> light. `SchemeWatcher` listens to the portal's
+  `SettingChanged` so an open picker switches live (the CSS provider is
+  reloaded in place and the root gets `.mojify-light` / `.mojify-dark`).
+- `MOJIFY_COLOR_SCHEME=light|dark` forces a scheme. It is a debugging aid for
+  screenshots, not a user-facing setting.
+- `register_fonts()` adds `mojify/fonts/*.ttf` for this process only via
+  fontconfig's `FcConfigAppFontAddFile` (ctypes); it must run before the
+  first widget and silently falls back to system fonts. The emoji grid's
+  `font-family` lists colour emoji fonts first; keep DM Sans out of it.
 
 ## CLI (`__main__.py`)
 
